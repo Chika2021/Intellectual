@@ -7,7 +7,7 @@ import { Role } from "./user.model";
 export class RegisterDto {
     @IsString()
     @IsNotEmpty()
-        name: string
+        name: string 
 
     @IsEmail()
     @IsNotEmpty()
