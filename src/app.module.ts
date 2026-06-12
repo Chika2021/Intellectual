@@ -9,6 +9,10 @@ import { CoursesModule } from './courses/courses.module';
 import { Course } from './courses/models/course.model';
 import { LecturesModule } from './lectures/lectures.module';
 import { Lectures } from './lectures/model/lectures.model';
+import { PaymentModule } from './payment/payment.module';
+import { AdminModule } from './admin/admin.module';
+import { SeedModule } from './seed/seed.module';
+import { CertificateModule } from './certificates/certificates.module';
 
 @Module({
   imports: [
@@ -22,13 +26,16 @@ import { Lectures } from './lectures/model/lectures.model';
       username: 'root',
       password: '',
       database: 'lms',
-      entities: [ User , Course , Lectures],
+      autoLoadEntities: true,
       synchronize: true,
     }),
-    ConfigModule.forRoot(),
     UserModule,
     CoursesModule,
     LecturesModule,
+    PaymentModule,
+    AdminModule,
+    SeedModule,
+    CertificateModule,
 
 
   ],

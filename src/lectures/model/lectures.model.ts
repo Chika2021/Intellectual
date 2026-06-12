@@ -11,10 +11,10 @@ export class Lectures {
     @Column()
         title: string
 
-    @Column()
+    @Column({type: 'text'})
         tutorial: string
 
-    @Column()
+    @Column({type: 'text'})
         materials: string
 
     @Column({nullable: true, default: null})

@@ -11,13 +11,15 @@ import { UserService } from 'src/user/user.service';
 import { User } from 'src/user/model/user.model';
 import { UserModule } from 'src/user/user.module';
 import { Course } from 'src/courses/models/course.model';
+import { CertificateModule } from 'src/certificates/certificates.module';
+import { LectureProgress } from './model/lecture-progress.model';
 
 @Module({
   imports:[
     
     PassportModule.register({defaultStrategy: 'jwt'}),
     
-    TypeOrmModule.forFeature([Lectures,  Course]),
+    TypeOrmModule.forFeature([Lectures,  Course, LectureProgress]),
 
     JwtModule.registerAsync({
           imports: [ConfigModule],
@@ -29,7 +31,8 @@ import { Course } from 'src/courses/models/course.model';
             }
         }),
     }),
-    UserModule
+    UserModule,
+    CertificateModule, 
   ],
   providers: [LecturesService, JwtStrategy],
   controllers: [LecturesController],
