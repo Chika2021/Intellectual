@@ -1,0 +1,13 @@
+apiVersion: choreo.dev/v1alpha1
+kind: Component
+metadata:
+  name: intellectual
+spec:
+  type: service
+  endpoints:
+    - name: default
+      port: 5000
+      type: REST
+      context: /
+      security:
+        enabled: false
