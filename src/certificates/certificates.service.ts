@@ -96,7 +96,18 @@ export class CertificateService {
     try {
       browser = await puppeteer.launch({
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          // BUG FIX: Render/Docker-style containers give Chrome a tiny (64MB)
+          // /dev/shm, which crashes headless Chrome on launch or mid-render.
+          // This forces Chrome to use /tmp instead, which is the standard
+          // fix for "Failed to launch the browser process" on hosts like Render.
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+          '--single-process',
+          '--no-zygote',
+        ],
       });
 
       const page = await browser.newPage();
@@ -110,8 +121,15 @@ export class CertificateService {
         margin: { top: 0, right: 0, bottom: 0, left: 0 },
       });
     } catch (error: any) {
-      this.logger.error(`Failed to generate PDF: ${error.message}`);
-      throw new InternalServerErrorException('Certificate generation failed');
+      // BUG FIX: log the full error (not just .message) so the real Puppeteer
+      // failure (missing Chromium, OOM kill, sandbox error, etc.) is visible
+      // in Render's logs instead of being hidden behind a generic message.
+      this.logger.error(`Failed to generate PDF: ${error?.message}`, error?.stack);
+      throw new InternalServerErrorException(
+        process.env.NODE_ENV === 'production'
+          ? 'Certificate generation failed'
+          : `Certificate generation failed: ${error?.message}`,
+      );
     } finally {
       if (browser) await browser.close();
     }
