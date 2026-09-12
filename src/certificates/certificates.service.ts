@@ -4,7 +4,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
-import * as puppeteer from 'puppeteer';
+// BUG FIX: swapped full `puppeteer` (bundled Chromium) for `puppeteer-core` +
+// `@sparticuz/chromium` — a statically-linked Chromium build with no external
+// shared-library dependencies. Render's (and most slim container) runtimes
+// lack libnss3/libatk-bridge2.0-0/libgbm1/etc. that full Puppeteer's Chromium
+// needs to even start, which is the usual cause of persistent
+// "Certificate generation failed" errors that survive launch-flag tweaks.
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 import { CourseCompletion } from './models/course-completion.model';
 import { User } from '../user/model/user.model';
 import { Course } from '../courses/models/course.model';
@@ -92,22 +99,20 @@ export class CertificateService {
   // HTML → PDF generation using Puppeteer
   // ──────────────────────────────────────────────────────────────────────────
   private async generateCertificatePdf(filePath: string, student: User, course: Course): Promise<void> {
-    let browser: puppeteer.Browser | null = null;
+    let browser: Awaited<ReturnType<typeof puppeteer.launch>> | null = null;
     try {
       browser = await puppeteer.launch({
         headless: true,
         args: [
+          ...chromium.args,
           '--no-sandbox',
           '--disable-setuid-sandbox',
-          // BUG FIX: Render/Docker-style containers give Chrome a tiny (64MB)
-          // /dev/shm, which crashes headless Chrome on launch or mid-render.
-          // This forces Chrome to use /tmp instead, which is the standard
-          // fix for "Failed to launch the browser process" on hosts like Render.
           '--disable-dev-shm-usage',
-          '--disable-gpu',
-          '--single-process',
-          '--no-zygote',
         ],
+        defaultViewport: (chromium as any).defaultViewport,
+        // @sparticuz/chromium ships its own Chromium binary and unpacks it to
+        // /tmp at runtime — no system Chrome install or shared libs required.
+        executablePath: await chromium.executablePath(),
       });
 
       const page = await browser.newPage();
