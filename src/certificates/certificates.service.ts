@@ -369,9 +369,9 @@ export class CertificateService {
 
             <div class="footer">
               <div class="sig-block">
-                <span class="sig-italic">Robernix Industries</span>
+                <span class="sig-italic">Olivia Johnson</span>
                 <div class="sig-rule"></div>
-                <p class="sig-name">Robernix Industries</p>
+                <p class="sig-name">Olivia Johnson</p>
                 <p class="sig-title">Chief Executive Officer</p>
               </div>
 
