@@ -71,10 +71,18 @@ export class CertificateService {
       throw new ForbiddenException('You do not own this certificate');
     }
 
-    const filePath = join(this.uploadDir, filename);
+    let filePath = join(this.uploadDir, filename);
     if (!existsSync(filePath)) {
+      // BUG FIX: regeneration creates a brand-new file with a fresh
+      // Date.now()-based name, so re-derive filePath from the completion
+      // record's (possibly updated) certificateUrl instead of re-checking
+      // the stale filename that was passed in.
       const courseId = parseInt(match[2]);
-      await this.generateAndSaveCertificate(userId, courseId);
+      const completion = await this.generateAndSaveCertificate(userId, courseId);
+      if (completion?.certificateUrl) {
+        const regeneratedFileName = completion.certificateUrl.split('/').pop()!;
+        filePath = join(this.uploadDir, regeneratedFileName);
+      }
     }
     if (!existsSync(filePath)) throw new NotFoundException('Certificate not found');
     return filePath;
